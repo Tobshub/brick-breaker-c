@@ -14,6 +14,7 @@ int main() {
   const int BALL_RADIUS = 10;
 
   Rectangle paddle = {WINDOW_WIDTH / 2.f, WINDOW_HEIGHT - 50.f, 150.f, 20.f};
+  int paddle_speed = 5;
 
   bool paused = false;
 
@@ -24,6 +25,13 @@ int main() {
     }
 
     if (!paused) {
+      if (IsKeyPressed(KEY_LEFT) || IsKeyDown(KEY_LEFT)) {
+        paddle.x -= paddle_speed;
+      }
+      if (IsKeyPressed(KEY_RIGHT) || IsKeyDown(KEY_RIGHT)) {
+        paddle.x += paddle_speed;
+      }
+
       ball_position.x += ball_direction.x * ball_speed;
       ball_position.y += ball_direction.y * ball_speed;
 
