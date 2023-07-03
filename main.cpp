@@ -1,9 +1,40 @@
 #include "raylib.h"
 
+struct Circle {
+  Vector2 position;
+  float radius;
+};
+
+// only use when a collision is detected
+int CircleRectCollision(Circle &circle, Rectangle &rect) {
+  // Check if the circle collides with the left or right edges of the rectangle
+  if ((circle.position.x + circle.radius >= rect.x &&
+       circle.position.x + circle.radius <=
+           rect.x + rect.width) || // Circle collides with the left edge
+      (circle.position.x - circle.radius >= rect.x &&
+       circle.position.x - circle.radius <=
+           rect.x + rect.width)) { // Circle collides with the right edge
+    return -1;
+  }
+
+  // Check if the circle collides with the top or bottom edges of the rectangle
+  if ((circle.position.y + circle.radius >= rect.y &&
+       circle.position.y + circle.radius <=
+           rect.y + rect.height) || // Circle collides with the top edge
+      (circle.position.y - circle.radius >= rect.y &&
+       circle.position.y - circle.radius <=
+           rect.y + rect.height)) { // Circle collides with the bottom edge
+    return 1;
+  }
+
+  return 0; // No collision
+}
+
 struct Brick {
   Rectangle rect;
   bool collideable;
 };
+
 struct BrickContainer {
   int rows;
   int cols;
@@ -18,26 +49,31 @@ int main() {
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Brick Breaker");
   SetTargetFPS(60);
 
-  Vector2 ball_position = {WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f};
+  Circle BALL = {.position = {WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f},
+                 .radius = 10.f};
   Vector2 ball_direction = {1, 1};
-  int ball_speed = 5;
-  const int BALL_RADIUS = 10;
+  int ball_speed = 8;
 
   Rectangle paddle = {WINDOW_WIDTH / 2.f, WINDOW_HEIGHT - 50.f, 150.f, 20.f};
   int paddle_speed = 8;
 
   bool paused = false;
 
-  BrickContainer brick_container = {.rows = 3, .cols = 10, .start = {10, 10}};
   const int BRICK_SIZE = 40;
+  int cols = 10;
+  BrickContainer brick_container = {
+      .rows = 3,
+      .cols = cols,
+      .start = {WINDOW_WIDTH / 2.f - (cols * BRICK_SIZE / 2.f) - BRICK_SIZE,
+                10}};
   const int BRICK_BORDER_SIZE = 1;
 
   Brick bricks[brick_container.rows][brick_container.cols];
 
   for (int row = 0; row < brick_container.rows; row++) {
     for (int col = 0; col < brick_container.cols; col++) {
-      float x = (float)(col + 1) * BRICK_SIZE;
-      float y = (float)(row + 1) * BRICK_SIZE;
+      float x = (float)(col + 1) * BRICK_SIZE + brick_container.start.x;
+      float y = (float)(row + 1) * BRICK_SIZE + brick_container.start.y;
       bricks[row][col] = Brick{.rect = Rectangle{x, y, BRICK_SIZE, BRICK_SIZE},
                                .collideable = true};
     }
@@ -57,19 +93,39 @@ int main() {
         paddle.x += paddle_speed;
       }
 
-      ball_position.x += ball_direction.x * ball_speed;
-      ball_position.y += ball_direction.y * ball_speed;
+      for (int row = 0; row < brick_container.rows; row++) {
+        for (int col = 0; col < brick_container.cols; col++) {
+          if (bricks[row][col].collideable) {
+            if (CheckCollisionCircleRec(BALL.position, BALL.radius,
+                                        bricks[row][col].rect)) {
+              int collision_side =
+                  CircleRectCollision(BALL, bricks[row][col].rect);
+              if (collision_side == -1) {
+                ball_direction.x *= -1;
+                bricks[row][col].collideable = false;
+              }
+              if (collision_side == 1) {
+                ball_direction.y *= -1;
+                bricks[row][col].collideable = false;
+              }
+            }
+          }
+        }
+      }
 
-      if (ball_position.x >= (WINDOW_WIDTH - BALL_RADIUS) ||
-          ball_position.x <= BALL_RADIUS) {
+      BALL.position.x += ball_direction.x * ball_speed;
+      BALL.position.y += ball_direction.y * ball_speed;
+
+      if (BALL.position.x >= (WINDOW_WIDTH - BALL.radius) ||
+          BALL.position.x <= BALL.radius) {
         ball_direction.x *= -1;
       }
 
-      if (CheckCollisionCircleRec(ball_position, BALL_RADIUS, paddle)) {
+      if (CheckCollisionCircleRec(BALL.position, BALL.radius, paddle)) {
         ball_direction.y = -1;
       }
-      if (ball_position.y >= (WINDOW_HEIGHT - BALL_RADIUS) ||
-          ball_position.y <= BALL_RADIUS) {
+      if (BALL.position.y >= (WINDOW_HEIGHT - BALL.radius) ||
+          BALL.position.y <= BALL.radius) {
         ball_direction.y *= -1;
       }
     }
@@ -77,7 +133,7 @@ int main() {
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
-    DrawCircleV(ball_position, BALL_RADIUS, RED);
+    DrawCircleV(BALL.position, BALL.radius, RED);
     DrawRectangleRec(paddle, BLUE);
 
     for (int row = 0; row < brick_container.rows; row++) {
