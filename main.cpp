@@ -1,9 +1,19 @@
 #include "raylib.h"
 
+struct Brick {
+  Rectangle rect;
+  bool collideable;
+};
+struct BrickContainer {
+  int rows;
+  int cols;
+  Vector2 start;
+};
+
 int main() {
 
   const int WINDOW_WIDTH = 800;
-  const int WINDOW_HEIGHT = 480;
+  const int WINDOW_HEIGHT = 600;
 
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Brick Breaker");
   SetTargetFPS(60);
@@ -17,6 +27,21 @@ int main() {
   int paddle_speed = 8;
 
   bool paused = false;
+
+  BrickContainer brick_container = {.rows = 3, .cols = 10, .start = {10, 10}};
+  const int BRICK_SIZE = 40;
+  const int BRICK_BORDER_SIZE = 1;
+
+  Brick bricks[brick_container.rows][brick_container.cols];
+
+  for (int row = 0; row < brick_container.rows; row++) {
+    for (int col = 0; col < brick_container.cols; col++) {
+      float x = (float)(col + 1) * BRICK_SIZE;
+      float y = (float)(row + 1) * BRICK_SIZE;
+      bricks[row][col] = Brick{.rect = Rectangle{x, y, BRICK_SIZE, BRICK_SIZE},
+                               .collideable = true};
+    }
+  }
 
   while (!WindowShouldClose()) {
 
@@ -54,6 +79,15 @@ int main() {
 
     DrawCircleV(ball_position, BALL_RADIUS, RED);
     DrawRectangleRec(paddle, BLUE);
+
+    for (int row = 0; row < brick_container.rows; row++) {
+      for (int col = 0; col < brick_container.cols; col++) {
+        if (bricks[row][col].collideable) {
+          DrawRectangleRec(bricks[row][col].rect, GREEN);
+          DrawRectangleLinesEx(bricks[row][col].rect, BRICK_BORDER_SIZE, BLACK);
+        }
+      }
+    }
 
     if (paused) {
       DrawText("PAUSED", 5, 5, 30, GRAY);
