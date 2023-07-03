@@ -7,15 +7,6 @@ struct Circle {
 
 // only use when a collision is detected
 int CircleRectCollision(Circle &circle, Rectangle &rect) {
-  // Check if the circle collides with the left or right edges of the rectangle
-  if ((circle.position.x + circle.radius >= rect.x &&
-       circle.position.x + circle.radius <=
-           rect.x + rect.width) || // Circle collides with the left edge
-      (circle.position.x - circle.radius >= rect.x &&
-       circle.position.x - circle.radius <=
-           rect.x + rect.width)) { // Circle collides with the right edge
-    return -1;
-  }
 
   // Check if the circle collides with the top or bottom edges of the rectangle
   if ((circle.position.y + circle.radius >= rect.y &&
@@ -27,6 +18,15 @@ int CircleRectCollision(Circle &circle, Rectangle &rect) {
     return 1;
   }
 
+  // Check if the circle collides with the left or right edges of the rectangle
+  if ((circle.position.x + circle.radius >= rect.x &&
+       circle.position.x + circle.radius <=
+           rect.x + rect.width) || // Circle collides with the left edge
+      (circle.position.x - circle.radius >= rect.x &&
+       circle.position.x - circle.radius <=
+           rect.x + rect.width)) { // Circle collides with the right edge
+    return -1;
+  }
   return 0; // No collision
 }
 
@@ -49,18 +49,19 @@ int main() {
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Brick Breaker");
   SetTargetFPS(60);
 
-  Circle BALL = {.position = {WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f},
+  Circle BALL = {.position = {WINDOW_WIDTH / 2.f,
+                              WINDOW_HEIGHT / 2.f + WINDOW_HEIGHT / 4.f},
                  .radius = 10.f};
-  Vector2 ball_direction = {1, 1};
+  Vector2 ball_direction = {1, -1};
   int ball_speed = 8;
 
   Rectangle paddle = {WINDOW_WIDTH / 2.f, WINDOW_HEIGHT - 50.f, 150.f, 20.f};
-  int paddle_speed = 8;
+  int paddle_speed = 10;
 
   bool paused = false;
 
   const int BRICK_SIZE = 40;
-  int cols = 10;
+  int cols = 15;
   BrickContainer brick_container = {
       .rows = 3,
       .cols = cols,
@@ -93,28 +94,27 @@ int main() {
         paddle.x += paddle_speed;
       }
 
+      BALL.position.x += ball_direction.x * ball_speed;
+      BALL.position.y += ball_direction.y * ball_speed;
+
       for (int row = 0; row < brick_container.rows; row++) {
         for (int col = 0; col < brick_container.cols; col++) {
-          if (bricks[row][col].collideable) {
-            if (CheckCollisionCircleRec(BALL.position, BALL.radius,
-                                        bricks[row][col].rect)) {
-              int collision_side =
-                  CircleRectCollision(BALL, bricks[row][col].rect);
+          if (bricks[row][col].collideable &&
+              CheckCollisionCircleRec(BALL.position, BALL.radius,
+                                      bricks[row][col].rect)) {
+            int collision_side =
+                CircleRectCollision(BALL, bricks[row][col].rect);
+            if (collision_side != 0) {
+              bricks[row][col].collideable = false;
               if (collision_side == -1) {
                 ball_direction.x *= -1;
-                bricks[row][col].collideable = false;
-              }
-              if (collision_side == 1) {
+              } else if (collision_side == 1) {
                 ball_direction.y *= -1;
-                bricks[row][col].collideable = false;
               }
             }
           }
         }
       }
-
-      BALL.position.x += ball_direction.x * ball_speed;
-      BALL.position.y += ball_direction.y * ball_speed;
 
       if (BALL.position.x >= (WINDOW_WIDTH - BALL.radius) ||
           BALL.position.x <= BALL.radius) {
