@@ -14,7 +14,7 @@ int main() {
   const int BALL_RADIUS = 10;
 
   Rectangle paddle = {WINDOW_WIDTH / 2.f, WINDOW_HEIGHT - 50.f, 150.f, 20.f};
-  int paddle_speed = 5;
+  int paddle_speed = 8;
 
   bool paused = false;
 
@@ -38,6 +38,10 @@ int main() {
       if (ball_position.x >= (WINDOW_WIDTH - BALL_RADIUS) ||
           ball_position.x <= BALL_RADIUS) {
         ball_direction.x *= -1;
+      }
+
+      if (CheckCollisionCircleRec(ball_position, BALL_RADIUS, paddle)) {
+        ball_direction.y = -1;
       }
       if (ball_position.y >= (WINDOW_HEIGHT - BALL_RADIUS) ||
           ball_position.y <= BALL_RADIUS) {
