@@ -1,30 +1,39 @@
 #include "raylib.h"
+#include <cstdio>
+#include <cstdlib>
 
 struct Circle {
   Vector2 position;
   float radius;
 };
 
-// only use when a collision is detected
+// only use when a collision is detected;
+// return 1 for top/bottom collision,
+// return -1 for left/right collision.
 int CircleRectCollision(Circle &circle, Rectangle &rect) {
-
   // Check if the circle collides with the top or bottom edges of the rectangle
-  if ((circle.position.y + circle.radius >= rect.y &&
-       circle.position.y + circle.radius <=
-           rect.y + rect.height) || // Circle collides with the top edge
-      (circle.position.y - circle.radius >= rect.y &&
-       circle.position.y - circle.radius <=
-           rect.y + rect.height)) { // Circle collides with the bottom edge
+  // Circle collides with the top edge
+  if (circle.position.y - circle.radius < rect.y &&
+      circle.position.y + circle.radius >= rect.y &&
+      circle.position.y + circle.radius <= rect.y + rect.height) {
+    return 1;
+  }
+  // Circle collides with the bottom edge
+  if (circle.position.y + circle.radius > rect.y + rect.height &&
+      circle.position.y - circle.radius >= rect.y + rect.height &&
+      circle.position.y - circle.radius <= rect.y + rect.height * 2) {
     return 1;
   }
 
   // Check if the circle collides with the left or right edges of the rectangle
-  if ((circle.position.x + circle.radius >= rect.x &&
-       circle.position.x + circle.radius <=
-           rect.x + rect.width) || // Circle collides with the left edge
-      (circle.position.x - circle.radius >= rect.x &&
-       circle.position.x - circle.radius <=
-           rect.x + rect.width)) { // Circle collides with the right edge
+  // Circle collides with the left edge
+  if (circle.position.x + circle.radius >= rect.x &&
+      circle.position.x + circle.radius <= rect.x + rect.width) {
+    return -1;
+  }
+  // Circle collides with the right edge
+  if (circle.position.x - circle.radius >= rect.x &&
+      circle.position.x - circle.radius <= rect.x + rect.width) {
     return -1;
   }
   return 0; // No collision
@@ -41,6 +50,17 @@ struct BrickContainer {
   Vector2 start;
 };
 
+// generate a random non-zero float
+float Random_NZ_Float(float min, float max) {
+  float num = 0.f;
+  while (num == 0.f) {
+    num = min + (max - min) * ((float)rand() / (float)RAND_MAX);
+  }
+  return num;
+}
+
+#define Random_Ball_X() Random_NZ_Float(-1.f, 1.f)
+
 int main() {
 
   const int WINDOW_WIDTH = 800;
@@ -52,16 +72,16 @@ int main() {
   Circle BALL = {.position = {WINDOW_WIDTH / 2.f,
                               WINDOW_HEIGHT / 2.f + WINDOW_HEIGHT / 4.f},
                  .radius = 10.f};
-  Vector2 ball_direction = {1, -1};
-  int ball_speed = 8;
+  Vector2 ball_direction = {Random_Ball_X(), -1};
+  int ball_speed = 5;
 
   Rectangle paddle = {WINDOW_WIDTH / 2.f, WINDOW_HEIGHT - 50.f, 150.f, 20.f};
-  int paddle_speed = 10;
+  int paddle_speed = ball_speed + 2;
 
   bool paused = false;
 
-  const int BRICK_SIZE = 40;
-  int cols = 15;
+  const float BRICK_SIZE = 40.f;
+  int cols = 12;
   BrickContainer brick_container = {
       .rows = 3,
       .cols = cols,
@@ -124,9 +144,12 @@ int main() {
       if (CheckCollisionCircleRec(BALL.position, BALL.radius, paddle)) {
         ball_direction.y = -1;
       }
-      if (BALL.position.y >= (WINDOW_HEIGHT - BALL.radius) ||
-          BALL.position.y <= BALL.radius) {
+      if (BALL.position.y <= BALL.radius) {
         ball_direction.y *= -1;
+      } else if (BALL.position.y >= (WINDOW_HEIGHT - BALL.radius)) {
+        ball_direction = {Random_Ball_X(), -1};
+        BALL.position.x = WINDOW_WIDTH / 2.f;
+        BALL.position.y = WINDOW_HEIGHT / 2.f + WINDOW_HEIGHT / 4.f;
       }
     }
 
