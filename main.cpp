@@ -1,6 +1,9 @@
 #include "raylib.h"
+#include <charconv>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <string>
 
 struct Circle {
   Vector2 position;
@@ -69,6 +72,9 @@ int main() {
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Brick Breaker");
   SetTargetFPS(60);
 
+  bool paused = false;
+  int lives = 3;
+
   Circle BALL = {.position = {WINDOW_WIDTH / 2.f,
                               WINDOW_HEIGHT / 2.f + WINDOW_HEIGHT / 4.f},
                  .radius = 10.f};
@@ -77,8 +83,6 @@ int main() {
 
   Rectangle paddle = {WINDOW_WIDTH / 2.f, WINDOW_HEIGHT - 50.f, 150.f, 20.f};
   int paddle_speed = ball_speed + 2;
-
-  bool paused = false;
 
   const float BRICK_SIZE = 40.f;
   int cols = 12;
@@ -106,7 +110,7 @@ int main() {
       paused = !paused;
     }
 
-    if (!paused) {
+    if (!paused && lives >= 0) {
       if (IsKeyPressed(KEY_LEFT) || IsKeyDown(KEY_LEFT)) {
         paddle.x -= paddle_speed;
       }
@@ -150,11 +154,15 @@ int main() {
         ball_direction = {Random_Ball_X(), -1};
         BALL.position.x = WINDOW_WIDTH / 2.f;
         BALL.position.y = WINDOW_HEIGHT / 2.f + WINDOW_HEIGHT / 4.f;
+        lives -= 1;
       }
     }
 
     BeginDrawing();
     ClearBackground(RAYWHITE);
+
+    if (!paused && lives >= 0)
+      DrawText(TextFormat("Lives: %i", lives), 5, 5, 30, RED);
 
     DrawCircleV(BALL.position, BALL.radius, RED);
     DrawRectangleRec(paddle, BLUE);
@@ -168,7 +176,9 @@ int main() {
       }
     }
 
-    if (paused) {
+    if (lives < 0) {
+      DrawText("GAME OVER", 5, 5, 30, RED);
+    } else if (paused) {
       DrawText("PAUSED", 5, 5, 30, GRAY);
     }
 
