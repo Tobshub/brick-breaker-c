@@ -1,9 +1,5 @@
 #include "raylib.h"
-#include <charconv>
-#include <cstdio>
 #include <cstdlib>
-#include <cstring>
-#include <string>
 
 struct Circle {
   Vector2 position;
@@ -165,7 +161,7 @@ int main() {
       DrawText(TextFormat("Lives: %i", lives), 5, 5, 30, RED);
 
     DrawCircleV(BALL.position, BALL.radius, RED);
-    DrawRectangleRec(paddle, BLUE);
+    DrawRectangleRounded(paddle, .8f, 0, BLUE);
 
     for (int row = 0; row < brick_container.rows; row++) {
       for (int col = 0; col < brick_container.cols; col++) {
