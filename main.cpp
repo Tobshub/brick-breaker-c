@@ -26,12 +26,14 @@ int CircleRectCollision(Circle &circle, Rectangle &rect) {
 
   // Check if the circle collides with the left or right edges of the rectangle
   // Circle collides with the left edge
-  if (circle.position.x + circle.radius >= rect.x &&
+  if (circle.position.x - circle.radius < rect.x &&
+      circle.position.x + circle.radius >= rect.x &&
       circle.position.x + circle.radius <= rect.x + rect.width) {
     return -1;
   }
   // Circle collides with the right edge
-  if (circle.position.x - circle.radius >= rect.x &&
+  if (circle.position.x + circle.radius > rect.x &&
+      circle.position.x - circle.radius >= rect.x &&
       circle.position.x - circle.radius <= rect.x + rect.width) {
     return -1;
   }
