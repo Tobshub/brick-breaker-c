@@ -60,6 +60,18 @@ float Random_NZ_Float(float min, float max) {
   return num;
 }
 
+void Build_Bricks_Conatiner(BrickContainer brick_container, Brick **bricks,
+                            float BRICK_SIZE) {
+  for (int row = 0; row < brick_container.rows; row++) {
+    for (int col = 0; col < brick_container.cols; col++) {
+      float x = (float)(col + 1) * BRICK_SIZE + brick_container.start.x;
+      float y = (float)(row + 1) * BRICK_SIZE + brick_container.start.y;
+      bricks[row][col] = Brick{.rect = Rectangle{x, y, BRICK_SIZE, BRICK_SIZE},
+                               .collideable = true};
+    }
+  }
+}
+
 #define Random_Ball_X() Random_NZ_Float(-1.f, 1.f)
 
 int main() {
@@ -72,6 +84,7 @@ int main() {
 
   bool paused = false;
   int lives = 3;
+  bool has_won = false;
 
   Circle BALL = {.position = {WINDOW_WIDTH / 2.f,
                               WINDOW_HEIGHT / 2.f + WINDOW_HEIGHT / 4.f},
@@ -91,24 +104,31 @@ int main() {
                 10}};
   const int BRICK_BORDER_SIZE = 1;
 
-  Brick bricks[brick_container.rows][brick_container.cols];
-
-  for (int row = 0; row < brick_container.rows; row++) {
-    for (int col = 0; col < brick_container.cols; col++) {
-      float x = (float)(col + 1) * BRICK_SIZE + brick_container.start.x;
-      float y = (float)(row + 1) * BRICK_SIZE + brick_container.start.y;
-      bricks[row][col] = Brick{.rect = Rectangle{x, y, BRICK_SIZE, BRICK_SIZE},
-                               .collideable = true};
-    }
+  // weird declaration to prevent compiler error
+  Brick **bricks;
+  bricks = new Brick *[brick_container.rows];
+  for (int i = 0; i < brick_container.rows; i++) {
+    bricks[i] = new Brick[brick_container.cols];
   }
+
+  Build_Bricks_Conatiner(brick_container, bricks, BRICK_SIZE);
 
   while (!WindowShouldClose()) {
 
     if (IsKeyPressed(KEY_SPACE)) {
-      paused = !paused;
+      if (has_won) {
+        BALL.position = {WINDOW_WIDTH / 2.f,
+                         WINDOW_HEIGHT / 2.f + WINDOW_HEIGHT / 4.f};
+        ball_direction = {Random_Ball_X(), -1};
+        lives = 3;
+        has_won = false;
+        Build_Bricks_Conatiner(brick_container, bricks, BRICK_SIZE);
+      } else {
+        paused = !paused;
+      }
     }
 
-    if (!paused && lives >= 0) {
+    if (!paused && lives >= 0 && !has_won) {
       if (IsKeyPressed(KEY_LEFT) || IsKeyDown(KEY_LEFT)) {
         paddle.x -= paddle_speed;
       }
@@ -159,22 +179,27 @@ int main() {
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
-    if (!paused && lives >= 0)
+    if (!paused && lives >= 0 && !has_won)
       DrawText(TextFormat("Lives: %i", lives), 5, 5, 30, RED);
 
     DrawCircleV(BALL.position, BALL.radius, RED);
     DrawRectangleRounded(paddle, .8f, 0, BLUE);
+
+    has_won = true;
 
     for (int row = 0; row < brick_container.rows; row++) {
       for (int col = 0; col < brick_container.cols; col++) {
         if (bricks[row][col].collideable) {
           DrawRectangleRec(bricks[row][col].rect, GREEN);
           DrawRectangleLinesEx(bricks[row][col].rect, BRICK_BORDER_SIZE, BLACK);
+          has_won = false;
         }
       }
     }
 
-    if (lives < 0) {
+    if (has_won) {
+      DrawText("YOU WIN", 5, 5, 30, GREEN);
+    } else if (lives < 0) {
       DrawText("GAME OVER", 5, 5, 30, RED);
     } else if (paused) {
       DrawText("PAUSED", 5, 5, 30, GRAY);
