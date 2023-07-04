@@ -12,13 +12,13 @@ struct Circle {
 int CircleRectCollision(Circle &circle, Rectangle &rect) {
   // Check if the circle collides with the top or bottom edges of the rectangle
   // Circle collides with the top edge
-  if (circle.position.y - circle.radius < rect.y &&
+  if (circle.position.y < rect.y &&
       circle.position.y + circle.radius >= rect.y &&
       circle.position.y + circle.radius <= rect.y + rect.height) {
     return 1;
   }
   // Circle collides with the bottom edge
-  if (circle.position.y + circle.radius > rect.y + rect.height &&
+  if (circle.position.y > rect.y + rect.height &&
       circle.position.y - circle.radius >= rect.y + rect.height &&
       circle.position.y - circle.radius <= rect.y + rect.height * 2) {
     return 1;
@@ -26,13 +26,13 @@ int CircleRectCollision(Circle &circle, Rectangle &rect) {
 
   // Check if the circle collides with the left or right edges of the rectangle
   // Circle collides with the left edge
-  if (circle.position.x - circle.radius < rect.x &&
+  if (circle.position.x < rect.x &&
       circle.position.x + circle.radius >= rect.x &&
       circle.position.x + circle.radius <= rect.x + rect.width) {
     return -1;
   }
   // Circle collides with the right edge
-  if (circle.position.x + circle.radius > rect.x &&
+  if (circle.position.x > rect.x &&
       circle.position.x - circle.radius >= rect.x &&
       circle.position.x - circle.radius <= rect.x + rect.width) {
     return -1;
@@ -116,7 +116,7 @@ int main() {
   while (!WindowShouldClose()) {
 
     if (IsKeyPressed(KEY_SPACE)) {
-      if (has_won) {
+      if (has_won || lives <= 0) {
         BALL.position = {WINDOW_WIDTH / 2.f,
                          WINDOW_HEIGHT / 2.f + WINDOW_HEIGHT / 4.f};
         ball_direction = {Random_Ball_X(), -1};
