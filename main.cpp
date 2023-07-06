@@ -44,7 +44,7 @@ int main() {
   while (!WindowShouldClose()) {
 
     if (IsKeyPressed(KEY_SPACE)) {
-      if (has_won || lives <= 0) {
+      if (has_won || lives < 0) {
         BALL.position = {WINDOW_WIDTH / 2.f,
                          WINDOW_HEIGHT / 2.f + WINDOW_HEIGHT / 4.f};
         ball_direction = {Random_Ball_X(), -1};
