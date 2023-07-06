@@ -8,6 +8,10 @@ int main() {
   const int WINDOW_HEIGHT = 600;
 
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Brick Breaker");
+  InitAudioDevice();
+
+  Sound blip = LoadSound("retro-blip.mp3");
+
   SetTargetFPS(60);
 
   bool paused = false;
@@ -81,6 +85,7 @@ int main() {
               } else if (collision_side == 1) {
                 ball_direction.y *= -1;
               }
+              PlaySound(blip);
             }
           }
         }
@@ -89,13 +94,16 @@ int main() {
       if (BALL.position.x >= (WINDOW_WIDTH - BALL.radius) ||
           BALL.position.x <= BALL.radius) {
         ball_direction.x *= -1;
+        PlaySound(blip);
       }
 
       if (CheckCollisionCircleRec(BALL.position, BALL.radius, paddle)) {
         ball_direction.y = -1;
+        PlaySound(blip);
       }
       if (BALL.position.y <= BALL.radius) {
         ball_direction.y *= -1;
+        PlaySound(blip);
       } else if (BALL.position.y >= (WINDOW_HEIGHT - BALL.radius)) {
         ball_direction = {Random_Ball_X(), -1};
         BALL.position.x = WINDOW_WIDTH / 2.f;
@@ -136,6 +144,9 @@ int main() {
     EndDrawing();
   }
 
+  UnloadSound(blip);
+
+  CloseAudioDevice();
   CloseWindow();
 
   return 0;
